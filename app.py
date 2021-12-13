@@ -1,109 +1,135 @@
-from constants import PLAYERS
-from constants import TEAMS
+import constants
 import random
+import copy
+
+
+replay = []
+replayed = 1
+my_teams = copy.deepcopy(constants.TEAMS)
+my_players = copy.deepcopy(constants.PLAYERS)
+store_cleaned_players = []
 
 
 def menu():
-    menu_choice = input("""
-    BASKETBALL TEAM STATS TOOL
-        ---MENU---
-    Here are your choices:
-    1) Display team Stats
-    2) Quit
-    Enter an option:    """)
+    
+    
+        try:
+            menu_option = int(input("""
+                 BasketBall Teams
+            -----------MENU-----------
+             Please choose a option:
+              1) Display Team Stats
+              2) Quit
+            Enter your choice > """))
+            
+            if menu_option == 1:
+                chosen_team()
+                
+            if menu_option == 2:
+                print("Thanks for stopping by")
+                exit()
+                
+            if menu_option > 2:
+                raise ValueError
+            if menu_option < 1:
+                raise ValueError
+                
+        except ValueError:
+            print("Please enter a valid choice")
 
-    if menu_choice == "1":
-        choose_team()
-    if menu_choice == "2":
-        exit()
-    else:
-        print("Please choose 1 or 2")
-        menu()
 
+def chosen_team():
+    
+        try:
+            team_chose = int(input("""
+            1) Panthers
+            2) Bandits
+            3) Warriors
 
-def choose_team():
-    choose_team = input("""
-    1) Panthers
-    2) Bandits
-    3) Warriors
+            Enter an option > """))
+            
+            if team_chose == 1:
+                team_choice_answer = "Panthers"
+                display_stats(team_choice_answer)
+                
+            if team_chose == 2:
+                team_choice_answer = "Bandits"
+                display_stats(team_choice_answer)
+                
+            if team_chose == 3:
+                team_choice_answer = "Warriors"
+                display_stats(team_choice_answer)
+                
+            if team_chose > 3:
+                raise ValueError
+            if team_chose < 1:
+                raise ValueError
+                
+        except ValueError:
+            print("Please enter a valid choice")
 
-    Enter an option:   """)
-
-    if choose_team == "1":
-        choose_team_answer = "Panthers"
-        display_stats(choose_team_answer)
-    elif choose_team == "2":
-        choose_team_answer = "Bandits"
-        display_stats(choose_team_answer)
-    elif choose_team == "3":
-        choose_team_answer = "Warriors"
-        display_stats(choose_team_answer)
-    else:
-        print("Please enter a valid option")
-        choose_team()
 
 def clean_data():
-    players_experienced = []
-    players_inexperienced = []
-    players_heights = []
-    for player in PLAYERS:
-        add_player_data = {}
-        add_player_data["name"] = player["name"]
-        if "and" in player["guardians"]:
-            add_player_data["guardians"] = player["guardians"].split(' and ')
-        else:
-            add_player_data["guardians"] = [player["guardians"]]
-        if player["experience"] == 'YES':
-            add_player_data["experience"] = True
-        else:
-            add_player_data["experience"] = False
-        add_player_data["height"] = int(player['height'].split(' ')[0])
-        players_heights.append(player["height"])
-        if add_player_data['experience'] is True:
-            players_experienced.append(add_player_data)
-        else:
-            players_inexperienced.append(add_player_data)
-    return players_experienced, players_inexperienced
-
-
-
-
+    if len(replay) == 0:
+        cleaned_players = []
+        for data in my_players:
+            add_player_data = {}
+            add_player_data['name'] = data['name']
+            if data['experience'] == 'YES':
+                add_player_data['experience'] = True
+            else:
+                add_player_data['experience'] = False
+            add_player_data["height"] = int(data['height'].split(' ')[0])
+            cleaned_players.append(add_player_data)
+    else:
+        cleaned_players = store_cleaned_players[0].copy()
+    return cleaned_players
 
 
 def balance_teams():
-    each_team_total = int(len(PLAYERS) / len(TEAMS))
-    team_players_chosen = random.sample(PLAYERS, each_team_total)
+    cleaned_players = clean_data()
+    each_team_total = int(len(cleaned_players) / len(my_teams))
+    if len(replay) == 0:
+        shuffled_players = random.shuffle(cleaned_players)
+        store_cleaned_players.append(cleaned_players.copy())
     player_names = []
-    for player in team_players_chosen:
-        add_player_name = {}
-        add_player_name = player["name"]
-        player_names.append(add_player_name)
+    for player in cleaned_players:
+        add_player_data = {}
+        add_player_data = player["name"]
+        player_names.append(add_player_data)
+    panthers = []
+    panthers.append(player_names[0:each_team_total])
+    bandits = []
+    bandits.append(player_names[each_team_total:each_team_total * 2])
+    warriors = []
+    warriors.append(player_names[each_team_total * 2:each_team_total * 3])
+    return panthers, bandits, warriors, each_team_total
 
-    return each_team_total, player_names
 
-
-def display_stats(team):
-    total_players, player_names = balance_teams()
-
-    enter = input("""
-    Team: {} Stats
+def display_stats(team_name):
+    panthers, bandits, warriors, total_players = balance_teams()
+    if team_name == "Panthers":
+        player_names = ', '.join(panthers[0][0:total_players])
+    if team_name == "Bandits":
+        player_names = ', '.join(bandits[0][0:total_players])
+    if team_name == "Warriors":
+        player_names = ', '.join(warriors[0][0:total_players])
+    choice = input("""
+    
+    Team {} Stats:
     --------------
     Total players: {}
     Players:
       {}
 
-    Press 1 to continue...""".format(team, total_players, ', '.join(player_names)))
-    if enter == "1":
-        exit()
+    Enter 1 to continue to start from the begining... """.format(team_name, total_players, player_names))
+    if choice == "1":
+        replay.append(replayed)
+        menu()
     else:
         exit()
 
 
-
-
-
-
-
-
 if __name__ == "__main__":
     menu()
+
